@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root{color-scheme:light}
+*{-webkit-tap-highlight-color:transparent}
+.container{max-width:960px;margin-inline:auto;padding-inline:16px}
+.card{@apply bg-white rounded-2xl shadow-sm border border-gray-200 p-4}
+.bottom-nav{@apply fixed bottom-0 inset-x-0 bg-white border-t border-gray-200}
+.bottom-nav ul{@apply grid grid-cols-4 text-center}
+.bottom-nav a{@apply py-3 text-sm}
+h1{@apply text-2xl font-bold}
