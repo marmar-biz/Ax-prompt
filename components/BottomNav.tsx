@@ -1,24 +1,21 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { useEffect } from 'react';
+import Link from 'next/link'
 
 export default function BottomNav() {
-  // اگر لازم شد بعدها هر API مرورگر را فقط داخل useEffect و با گارد صدا بزن
-  useEffect(() => {
-    // مثال امن:
-    // if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-    //   navigator.vibrate(20);
-    // }
-  }, []);
-
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t bg-white">
-      <div className="max-w-screen-sm mx-auto flex items-center justify-around py-3">
-        <Link href="/">خانه</Link>
-        <Link href="/categories">دسته‌ها</Link>
-        <Link href="/packages">پکیج‌ها</Link>
+    <nav className="fixed bottom-0 inset-x-0 border-t bg-white/90 backdrop-blur z-50">
+      <div className="mx-auto max-w-3xl flex items-stretch justify-around h-12">
+        <Link href="/" className="flex-1 flex items-center justify-center">
+          خانه
+        </Link>
+        <Link href="/categories" className="flex-1 flex items-center justify-center">
+          دسته‌ها
+        </Link>
+        <Link href="/packages" className="flex-1 flex items-center justify-center">
+          پکیج‌ها
+        </Link>
       </div>
     </nav>
-  );
+  )
 }
