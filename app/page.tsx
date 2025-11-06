@@ -8,34 +8,40 @@ export default async function Home() {
     .order('created_at', { ascending: false })
 
   return (
-    <main className="container mx-auto p-6">
+    <main className="container mx-auto p-6 text-right">
       <header className="pt-6">
-        <h1>سلام! 👋 به «عکس» خوش اومدی</h1>
-        <p className="text-gray-600 mt-2">لیست تستی از Supabase پایین دیده میشه.</p>
+        <h1 className="text-2xl font-bold mb-2">👋 سلام! به «پرامپت‌شاپ» خوش اومدی</h1>
+        <p className="text-gray-600">
+          فروشگاه تخصصی پرامپت برای طراحی، عکس، ویدیو و پروژه‌های هوش مصنوعی
+        </p>
       </header>
 
-      <section className="mt-6 space-y-3">
+      <section className="mt-8 space-y-3">
         {error && (
-          <div className="text-red-600">خطا در خواندن از دیتابیس: {error.message}</div>
+          <div className="text-red-600">⚠️ خطا در خواندن داده‌ها از پایگاه داده: {error.message}</div>
         )}
 
         {!error && (!data || data.length === 0) && (
-          <div>فعلاً هیچ آیتمی ثبت نشده.</div>
+          <div>📭 هنوز هیچ پرامپتی ثبت نشده.</div>
         )}
 
         {data?.map((it) => (
-          <div key={it.id} className="border rounded p-3">
+          <div key={it.id} className="border rounded p-3 shadow-sm">
             <div className="font-medium">{it.title}</div>
-            <div className="text-xs text-gray-500">
-              {new Date(it.created_at).toLocaleString()}
+            <div className="text-xs text-gray-500 mt-1">
+              {new Date(it.created_at).toLocaleString('fa-IR')}
             </div>
           </div>
         ))}
       </section>
 
-      <section className="mt-8 flex gap-3">
-        <Link href="/categories" className="underline">دسته‌بندی‌ها</Link>
-        <Link href="/packages" className="underline">پکیج‌ها</Link>
+      <section className="mt-8 flex justify-center gap-4">
+        <Link href="/categories" className="border px-4 py-2 rounded-md hover:bg-gray-100">
+          دسته‌ها
+        </Link>
+        <Link href="/packages" className="border px-4 py-2 rounded-md hover:bg-gray-100">
+          پکیج‌ها
+        </Link>
       </section>
     </main>
   )
