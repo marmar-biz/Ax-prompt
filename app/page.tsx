@@ -9,7 +9,7 @@ export default async function Home() {
     .order('created_at', { ascending: false })
 
   return (
-    <main className="container mx-auto p-6 text-right pb-20">
+    <main className="container mx-auto p-6 text-right pb-24"> {/* فضای کافی برای نوار */}
       <header className="pt-6">
         <h1 className="text-2xl font-bold mb-2">👋 سلام! به «پرامپت‌شاپ» خوش اومدی</h1>
         <p className="text-gray-600">
@@ -33,12 +33,8 @@ export default async function Home() {
       </section>
 
       <section className="mt-8 flex justify-center gap-4">
-        <Link href="/categories" className="border px-4 py-2 rounded-md hover:bg-gray-100">
-          دسته‌ها
-        </Link>
-        <Link href="/packages" className="border px-4 py-2 rounded-md hover:bg-gray-100">
-          پکیج‌ها
-        </Link>
+        <Link href="/categories" className="border px-4 py-2 rounded-md hover:bg-gray-100">دسته‌ها</Link>
+        <Link href="/packages" className="border px-4 py-2 rounded-md hover:bg-gray-100">پکیج‌ها</Link>
       </section>
 
       <BottomNav />
