@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { supabase } from '../supabase'
+import BottomNav from '../components/BottomNav'
 
 export default async function Home() {
   const { data, error } = await supabase
@@ -8,7 +9,7 @@ export default async function Home() {
     .order('created_at', { ascending: false })
 
   return (
-    <main className="container mx-auto p-6 text-right">
+    <main className="container mx-auto p-6 text-right pb-20">
       <header className="pt-6">
         <h1 className="text-2xl font-bold mb-2">👋 سلام! به «پرامپت‌شاپ» خوش اومدی</h1>
         <p className="text-gray-600">
@@ -17,14 +18,10 @@ export default async function Home() {
       </header>
 
       <section className="mt-8 space-y-3">
-        {error && (
-          <div className="text-red-600">⚠️ خطا در خواندن داده‌ها از پایگاه داده: {error.message}</div>
-        )}
-
+        {error && <div className="text-red-600">⚠️ خطا: {error.message}</div>}
         {!error && (!data || data.length === 0) && (
           <div>📭 هنوز هیچ پرامپتی ثبت نشده.</div>
         )}
-
         {data?.map((it) => (
           <div key={it.id} className="border rounded p-3 shadow-sm">
             <div className="font-medium">{it.title}</div>
@@ -43,6 +40,8 @@ export default async function Home() {
           پکیج‌ها
         </Link>
       </section>
+
+      <BottomNav />
     </main>
   )
 }
