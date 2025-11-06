@@ -16,3 +16,4 @@ export default function BottomNav(){
     </li>))}
   </ul></nav>)
 }
+GamepadHapticActuator
