@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import BottomNav from '@/components/BottomNav'
+import BottomNav from '../components/BottomNav'
 export default function Home(){
   return(<main className="container pb-20 space-y-6">
     <header className="pt-6">
