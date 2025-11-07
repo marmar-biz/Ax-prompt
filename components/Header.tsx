@@ -4,31 +4,49 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase-browser';
 
 export default function Header() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setLoggedIn(!!data.session);
+      setIsAuthed(!!data.session);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setLoggedIn(!!s);
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setIsAuthed(!!session);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => { sub.subscription.unsubscribe(); };
   }, []);
 
-  return (
-    <header className="container mx-auto py-4 flex items-center justify-between">
-      <Link href="/" className="font-extrabold text-lg">پرامپت‌شاپ</Link>
+  const logout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/';
+  };
 
-      <nav className="flex items-center gap-3">
-        <Link href="/products" className="btn-ghost">محصولات</Link>
-        <Link href="/purchases" className="btn-ghost">خریدهای شما</Link>
-        {loggedIn ? (
-          <Link href="/account" className="btn">حساب کاربری</Link>
-        ) : (
-          <Link href="/login" className="btn">ورود / ثبت‌نام</Link>
-        )}
-      </nav>
+  return (
+    <header className="w-full border-b bg-white">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        <Link href="/" className="text-xl font-bold">پرامپت‌شاپ</Link>
+
+        <nav className="flex items-center gap-3">
+          <Link href="/products" className="hover:underline">محصولات</Link>
+          <Link href="/purchases" className="hover:underline">خریدهای شما</Link>
+
+          {!isAuthed ? (
+            <Link
+              href="/login"
+              className="rounded-lg bg-black px-4 py-2 text-white"
+            >
+              ورود / ثبت‌نام
+            </Link>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link href="/account" className="underline">پروفایل</Link>
+              <button onClick={logout} className="rounded-lg border px-3 py-2">
+                خروج
+              </button>
+            </div>
+          )}
+        </nav>
+      </div>
     </header>
   );
 }
