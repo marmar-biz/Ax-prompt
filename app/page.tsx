@@ -1,74 +1,32 @@
 import Link from 'next/link'
-import BottomNav from '../components/BottomNav'
-import Header from '../components/Header'
-import Tabs from '../components/Tabs'
 import ProductCard from '../components/ProductCard'
 
 export default function Home() {
   return (
-    <main className="container mx-auto px-4 pb-28"> 
-      <Header />
+    <main className="container mx-auto px-4">
+      <header className="pt-6">
+        <h1 className="text-3xl font-extrabold">سلام! 👋 به «پرامپت‌شاپ» خوش اومدی</h1>
+        <p className="text-gray-600 mt-2">
+          فروشگاه تخصصی پرامپت برای طراحی، عکس، ویدیو و پروژه‌های هوش مصنوعی
+        </p>
+      </header>
 
-      <section className="mt-6">
-        <div className="bg-gradient-to-b from-violet-100 to-white rounded-3xl p-4 sm:p-6 shadow-sm">
-          <div className="inline-flex items-center gap-2 bg-white/80 rounded-2xl px-4 py-2 shadow">
-            <span className="text-2xl">👋</span>
-            <span className="font-bold">به «پرامپت‌شاپ» خوش اومدی!</span>
-          </div>
-          <p className="mt-4 text-gray-600">
-            فروشگاه تخصصی پرامپت برای طراحی، عکس، ویدیو و پروژه‌های هوش مصنوعی
-          </p>
-        </div>
-      </section>
-
-      <Tabs />
-
-      {/* شبکه محصولات نمونه – بعداً به دیتابیس وصلش می‌کنیم */}
-      <section className="mt-6 space-y-6">
+      {/* لیست محصولات/دسته‌ها */}
+      <section className="mt-8">
         <ProductCard
-          badge="۳۲۱ نفر خریدن"
           title="بانک پرامپت طلا و زیورآلات"
-          bullets={[
-            '۵۰۰+ پرامپت پیشرفته برای نمایش محصول',
-            'مناسب برای آنلاین‌شاپ‌ها و طلافروشی‌ها',
-            'تنها نیازمندی: اپلیکیشن ChatGPT',
-          ]}
-          ctaText="ورود"
-          href="/categories/gold"
-          cover="/cover-gold.jpg" /* می‌تونی بعداً عکس خودت رو بذاری */
-          price={null}
+          description="۵۰۰+ پرامپت پیشرفته برای نمایش محصول (انگشتر، گردنبند، گوشواره، دستبند). مناسب برای طلافروشی‌ها و آنلاین‌شاپ‌ها."
+          cover="/cover-gold.jpg"
         />
 
-        <ProductCard
-          badge="۱۰۹ نفر خریدن"
-          title="بانک پرامپت کافه و رستوران"
-          bullets={[
-            '۸۰+ پرامپت برای فست‌فود + قهوه + کیک + مدل',
-            'مناسب برای رستوران‌ها و کافه‌ها',
-            'تنها نیازمندی: اپلیکیشن ChatGPT',
-          ]}
-          ctaText="خرید و دریافت"
-          href="/packages/cafe"
-          cover="/cover-cafe.jpg"
-          price="۴۹۹,۰۰۰ تومان"
-        />
-
-        <ProductCard
-          badge="۸۸ نفر خریدن"
-          title="بانک پرامپت آرایشی بهداشتی"
-          bullets={[
-            '۱۲۰+ پرامپت برای نمایش محصول',
-            'مناسب فروشگاه‌های لوازم آرایشی',
-            'تنها نیازمندی: اپلیکیشن ChatGPT',
-          ]}
-          ctaText="خرید و دریافت"
-          href="/packages/beauty"
-          cover="/cover-beauty.jpg"
-          price="۳۹۹,۰۰۰ تومان"
-        />
+        {/* می‌تونی بعداً کارت‌های بیشتری اضافه کنی */}
+        {/* <ProductCard title="بانک پرامپت آرایشی بهداشتی" description="..." cover="/cover-cosmetics.jpg" /> */}
       </section>
 
-      <BottomNav />
+      <section className="grid grid-cols-2 gap-4 mt-6">
+        <Link href="/packages" className="btn">پکیج‌ها</Link>
+        <Link href="/categories" className="btn">دسته‌ها</Link>
+      </section>
     </main>
   )
 }
