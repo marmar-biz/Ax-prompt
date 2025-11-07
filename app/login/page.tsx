@@ -1,136 +1,138 @@
 'use client';
+
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase-browser';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const [step, setStep] = useState<'phone' | 'code'>('phone');
+  const router = useRouter();
   const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
-  const [fullName, setFullName] = useState(''); // نام و نام‌خانوادگی
+  const [email, setEmail] = useState('');
+  const [phase, setPhase] = useState<'ask'|'verify'>('ask');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const [method, setMethod] = useState<'phone'|'email'>('phone');
+  const [message, setMessage] = useState<string | null>(null);
 
-  // ارسال کد
-  const sendCode = async () => {
-    setErr(null); setMsg(null); setLoading(true);
+  async function sendCode(e: React.FormEvent) {
+    e.preventDefault();
+    setMessage(null);
+    setLoading(true);
     try {
-      // فرمت شماره به صورت بین‌المللی، مثلا ایران: +98912xxxxxxx
-      const { error } = await supabase.auth.signInWithOtp({
-        phone,
-        options: { channel: 'sms' }
-      });
-      if (error) throw error;
-      setMsg('کد ارسال شد. صندوق پیامک را چک کن.');
-      setStep('code');
-    } catch (e: any) {
-      setErr(e.message || 'خطا در ارسال کد');
-    } finally { setLoading(false); }
-  };
-
-  // تأیید کد و ساخت/به‌روزرسانی پروفایل
-  const verifyCode = async () => {
-    setErr(null); setMsg(null); setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone,
-        token: code,
-        type: 'sms'
-      });
-      if (error) throw error;
-
-      // ساخت/آپدیت پروفایل
-      const user = data.user;
-      if (user) {
-        await fetch('/api/profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ full_name: fullName })
-        });
+      if (method === 'phone') {
+        // نکته: برای کارکرد واقعی، باید Phone Auth را در Supabase فعال و سرویس SMS تنظیم شود
+        const { error } = await supabase.auth.signInWithOtp({ phone });
+        if (error) throw error;
+        setPhase('verify');
+        setMessage('کد برای شما ارسال شد.');
+      } else {
+        const { error } = await supabase.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.origin + '/login' }});
+        if (error) throw error;
+        setMessage('لینک/کد یک‌بارمصرف به ایمیل شما ارسال شد.');
+        setPhase('verify');
       }
+    } catch (err: any) {
+      setMessage(err.message ?? 'خطا در ارسال کد');
+    } finally {
+      setLoading(false);
+    }
+  }
 
-      setMsg('ورود موفق! در حال انتقال…');
-      // انتقال به صفحه اصلی
-      window.location.href = '/';
-    } catch (e: any) {
-      setErr(e.message || 'کد نادرست است');
-    } finally { setLoading(false); }
-  };
+  async function verifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    setMessage(null);
+    setLoading(true);
+    try {
+      if (method === 'phone') {
+        const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: 'sms' });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
+        if (error) throw error;
+      }
+      setMessage('ورود موفق بود. در حال انتقال...');
+      router.push('/'); // پس از ورود به صفحه اصلی
+    } catch (err: any) {
+      setMessage(err.message ?? 'کد نامعتبر است');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <main className="container mx-auto max-w-md px-4 py-10">
-      <h1 className="text-2xl font-bold mb-6 text-right">ورود / ثبت‌نام با موبایل</h1>
+    <div className="max-w-md mx-auto px-4 py-10">
+      <h2 className="text-2xl font-bold mb-6">ورود / ثبت‌نام</h2>
 
-      {step === 'phone' && (
-        <div className="space-y-4">
-          <label className="block text-right">
-            <span className="block mb-2">شماره موبایل (با +98)</span>
-            <input
-              dir="ltr"
-              className="w-full rounded-md border px-3 py-2"
-              placeholder="+98912xxxxxxx"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </label>
-
-          <label className="block text-right">
-            <span className="block mb-2">نام و نام خانوادگی</span>
-            <input
-              className="w-full rounded-md border px-3 py-2"
-              placeholder="مثلاً مریم بی‌آزار"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-          </label>
-
-          <button
-            onClick={sendCode}
-            disabled={loading || !phone}
-            className="w-full rounded-lg bg-black text-white py-2 disabled:opacity-50"
-          >
-            {loading ? 'در حال ارسال…' : 'ارسال کد'}
-          </button>
-        </div>
-      )}
-
-      {step === 'code' && (
-        <div className="space-y-4">
-          <label className="block text-right">
-            <span className="block mb-2">کد پیامک</span>
-            <input
-              dir="ltr"
-              className="w-full rounded-md border px-3 py-2"
-              placeholder="123456"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-          </label>
-
-          <button
-            onClick={verifyCode}
-            disabled={loading || !code}
-            className="w-full rounded-lg bg-black text-white py-2 disabled:opacity-50"
-          >
-            {loading ? 'در حال ورود…' : 'تأیید کد و ورود'}
-          </button>
-
-          <button
-            onClick={() => setStep('phone')}
-            className="w-full rounded-lg border py-2"
-          >
-            اصلاح شماره
-          </button>
-        </div>
-      )}
-
-      {msg && <p className="mt-4 text-green-600 text-right">{msg}</p>}
-      {err && <p className="mt-4 text-red-600 text-right">{err}</p>}
-
-      <div className="mt-8 text-right">
-        <Link href="/" className="underline">بازگشت به خانه</Link>
+      <div className="mb-4 flex gap-2">
+        <button
+          onClick={() => setMethod('phone')}
+          className={`px-3 py-2 rounded border ${method==='phone'?'bg-black text-white':'bg-white'}`}
+        >
+          با موبایل
+        </button>
+        <button
+          onClick={() => setMethod('email')}
+          className={`px-3 py-2 rounded border ${method==='email'?'bg-black text-white':'bg-white'}`}
+        >
+          با ایمیل
+        </button>
       </div>
-    </main>
+
+      {phase === 'ask' && (
+        <form onSubmit={sendCode} className="space-y-4">
+          {method === 'phone' ? (
+            <input
+              dir="ltr"
+              required
+              placeholder="مثلاً +98912xxxxxxx"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+            />
+          ) : (
+            <input
+              type="email"
+              required
+              placeholder="ایمیل شما"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+            />
+          )}
+
+          <button
+            disabled={loading}
+            className="w-full rounded bg-black text-white py-2"
+          >
+            {loading ? 'در حال ارسال...' : 'ارسال کد'}
+          </button>
+        </form>
+      )}
+
+      {phase === 'verify' && (
+        <form onSubmit={verifyCode} className="space-y-4">
+          <input
+            required
+            placeholder="کد ۶ رقمی"
+            value={otp}
+            onChange={e => setOtp(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          />
+          <button
+            disabled={loading}
+            className="w-full rounded bg-black text-white py-2"
+          >
+            {loading ? 'در حال بررسی...' : 'تأیید'}
+          </button>
+        </form>
+      )}
+
+      {message && <p className="mt-4 text-sm text-gray-700">{message}</p>}
+
+      <p className="mt-6 text-xs text-gray-500">
+        نکته: اگر پیامک فعال نباشد، روش ایمیل را استفاده کنید. بعداً که SMS Provider را در Supabase
+        تنظیم کردی، ورود با موبایل هم فعال می‌شود.
+      </p>
+    </div>
   );
 }
