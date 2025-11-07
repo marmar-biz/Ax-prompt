@@ -1,53 +1,53 @@
-import Link from 'next/link'
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
 
 type Props = {
-  badge: string
-  title: string
-  bullets: string[]
-  ctaText: string
-  href: string
-  cover?: string | null
-  price?: string | null
-}
+  id: string;
+  title: string;
+  cover: string | null;
+  price: number;
+  short_desc?: string | null;
+};
 
-export default function ProductCard({
-  badge, title, bullets, ctaText, href, cover = null, price = null
-}: Props) {
+export default function ProductCard({ id, title, cover, price, short_desc }: Props) {
   return (
-    <article className="bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-100">
-      {cover ? (
-        <div className="relative">
-          {/* می‌تونی بعداً از next/image استفاده کنی */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={cover} alt={title} className="w-full h-56 object-cover" />
-          <div className="absolute top-3 left-3 bg-white/90 text-gray-700 text-sm px-3 py-1 rounded-full shadow">
-            {badge}
+    <div className="rounded-2xl border bg-white p-3 shadow-sm">
+      {/* کاور */}
+      <div className="relative mb-3 h-52 w-full overflow-hidden rounded-xl">
+        {cover ? (
+          <Image
+            src={cover}
+            alt={title}
+            fill
+            className="object-cover"
+            sizes="(max-width:768px) 100vw, 400px"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
+            بدون تصویر
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* متن */}
+      <h3 className="mb-1 line-clamp-1 text-lg font-bold">{title}</h3>
+      {short_desc ? (
+        <p className="mb-3 line-clamp-2 text-sm text-gray-600">{short_desc}</p>
       ) : null}
 
-      <div className="p-5">
-        <h3 className="text-xl font-extrabold mb-2">{title}</h3>
-        <ul className="space-y-2 text-gray-700 leading-7 mb-4 list-disc pr-6">
-          {bullets.map((b, i)=>(
-            <li key={i}>{b}</li>
-          ))}
-        </ul>
+      <div className="mt-2 flex items-center justify-between">
+        <div className="font-extrabold">{price.toLocaleString('fa-IR')} تومان</div>
 
-        <div className="flex items-center justify-between">
-          <Link
-            href={href}
-            className="inline-flex items-center gap-2 bg-gray-900 text-white px-5 py-3 rounded-2xl"
-          >
-            <span className="text-lg">←</span>
-            <span>{ctaText}</span>
-          </Link>
-
-          {price ? (
-            <div className="text-gray-900 font-extrabold">{price}</div>
-          ) : <div/>}
-        </div>
+        {/* ⬅️ اینجا خبری از «تعداد خریداران» نیست */}
+        <Link
+          href={`/checkout?id=${id}`}
+          className="rounded-xl bg-black px-4 py-2 text-sm text-white"
+        >
+          خرید و دریافت
+        </Link>
       </div>
-    </article>
-  )
+    </div>
+  );
 }
