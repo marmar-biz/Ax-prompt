@@ -1,40 +1,71 @@
 import Link from 'next/link'
-import { supabase } from '../supabase'
 import BottomNav from '../components/BottomNav'
+import Header from '../components/Header'
+import Tabs from '../components/Tabs'
+import ProductCard from '../components/ProductCard'
 
-export default async function Home() {
-  const { data, error } = await supabase
-    .from('items')
-    .select('id,title,created_at')
-    .order('created_at', { ascending: false })
-
+export default function Home() {
   return (
-    <main className="container mx-auto p-6 text-right pb-24"> {/* فضای کافی برای نوار */}
-      <header className="pt-6">
-        <h1 className="text-2xl font-bold mb-2">👋 سلام! به «پرامپت‌شاپ» خوش اومدی</h1>
-        <p className="text-gray-600">
-          فروشگاه تخصصی پرامپت برای طراحی، عکس، ویدیو و پروژه‌های هوش مصنوعی
-        </p>
-      </header>
+    <main className="container mx-auto px-4 pb-28"> 
+      <Header />
 
-      <section className="mt-8 space-y-3">
-        {error && <div className="text-red-600">⚠️ خطا: {error.message}</div>}
-        {!error && (!data || data.length === 0) && (
-          <div>📭 هنوز هیچ پرامپتی ثبت نشده.</div>
-        )}
-        {data?.map((it) => (
-          <div key={it.id} className="border rounded p-3 shadow-sm">
-            <div className="font-medium">{it.title}</div>
-            <div className="text-xs text-gray-500 mt-1">
-              {new Date(it.created_at).toLocaleString('fa-IR')}
-            </div>
+      <section className="mt-6">
+        <div className="bg-gradient-to-b from-violet-100 to-white rounded-3xl p-4 sm:p-6 shadow-sm">
+          <div className="inline-flex items-center gap-2 bg-white/80 rounded-2xl px-4 py-2 shadow">
+            <span className="text-2xl">👋</span>
+            <span className="font-bold">به «پرامپت‌شاپ» خوش اومدی!</span>
           </div>
-        ))}
+          <p className="mt-4 text-gray-600">
+            فروشگاه تخصصی پرامپت برای طراحی، عکس، ویدیو و پروژه‌های هوش مصنوعی
+          </p>
+        </div>
       </section>
 
-      <section className="mt-8 flex justify-center gap-4">
-        <Link href="/categories" className="border px-4 py-2 rounded-md hover:bg-gray-100">دسته‌ها</Link>
-        <Link href="/packages" className="border px-4 py-2 rounded-md hover:bg-gray-100">پکیج‌ها</Link>
+      <Tabs />
+
+      {/* شبکه محصولات نمونه – بعداً به دیتابیس وصلش می‌کنیم */}
+      <section className="mt-6 space-y-6">
+        <ProductCard
+          badge="۳۲۱ نفر خریدن"
+          title="بانک پرامپت طلا و زیورآلات"
+          bullets={[
+            '۵۰۰+ پرامپت پیشرفته برای نمایش محصول',
+            'مناسب برای آنلاین‌شاپ‌ها و طلافروشی‌ها',
+            'تنها نیازمندی: اپلیکیشن ChatGPT',
+          ]}
+          ctaText="ورود"
+          href="/categories/gold"
+          cover="/cover-gold.jpg" /* می‌تونی بعداً عکس خودت رو بذاری */
+          price={null}
+        />
+
+        <ProductCard
+          badge="۱۰۹ نفر خریدن"
+          title="بانک پرامپت کافه و رستوران"
+          bullets={[
+            '۸۰+ پرامپت برای فست‌فود + قهوه + کیک + مدل',
+            'مناسب برای رستوران‌ها و کافه‌ها',
+            'تنها نیازمندی: اپلیکیشن ChatGPT',
+          ]}
+          ctaText="خرید و دریافت"
+          href="/packages/cafe"
+          cover="/cover-cafe.jpg"
+          price="۴۹۹,۰۰۰ تومان"
+        />
+
+        <ProductCard
+          badge="۸۸ نفر خریدن"
+          title="بانک پرامپت آرایشی بهداشتی"
+          bullets={[
+            '۱۲۰+ پرامپت برای نمایش محصول',
+            'مناسب فروشگاه‌های لوازم آرایشی',
+            'تنها نیازمندی: اپلیکیشن ChatGPT',
+          ]}
+          ctaText="خرید و دریافت"
+          href="/packages/beauty"
+          cover="/cover-beauty.jpg"
+          price="۳۹۹,۰۰۰ تومان"
+        />
       </section>
 
       <BottomNav />
