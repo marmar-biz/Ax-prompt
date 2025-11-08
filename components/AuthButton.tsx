@@ -1,35 +1,38 @@
 'use client';
-
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { supabase } from '@/lib/supabase-browser';
+import Link from 'next/link';
 
 export default function AuthButton() {
-  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setLoggedIn(!!data.session);
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user || null);
+      setLoading(false);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setLoggedIn(!!session);
+      setUser(session?.user || null);
     });
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  if (loggedIn === null) return null;
+  if (loading) return null;
 
-  return loggedIn ? (
-    <Link
-      href="/account"
-      className="rounded-lg px-3 py-2 bg-gray-100 hover:bg-gray-200 text-sm"
-    >
-      حساب من
-    </Link>
-  ) : (
+  if (user) {
+    return (
+      <div className="flex items-center gap-3">
+        <Link href="/account" className="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200">
+          حساب کاربری
+        </Link>
+      </div>
+    );
+  }
+  return (
     <Link
       href="/login"
-      className="rounded-lg px-3 py-2 bg-black text-white hover:opacity-90 text-sm"
+      className="px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200"
     >
       ورود / ثبت‌نام
     </Link>
