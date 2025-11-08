@@ -1,68 +1,71 @@
 'use client';
-
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase-browser';
 
-type PromptItem = {
-  id: string;
-  product_id: string;
-  title: string | null;
-  text: string;       // متن پرامپت
-  image_url: string | null;
-};
-
-export default function ProductContentPage() {
+export default function ProductContent() {
   const { id } = useParams<{ id: string }>();
-  const [items, setItems] = useState<PromptItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
   const [denied, setDenied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [prompts, setPrompts] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
-      const { data, error, status } = await supabase
-        .from('prompts') // اگر ویو محافظت‌شده داری، همان را بگذار
-        .select('id,product_id,title,text,image_url')
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setDenied(true); setLoading(false); return; }
+
+      // آیا این محصول را خریده؟
+      const { data: order } = await supabase
+        .from('orders')
+        .select('id,status')
+        .eq('user_id', user.id)
+        .eq('product_id', id)
+        .eq('status', 'paid')
+        .maybeSingle();
+
+      if (!order) { setDenied(true); setLoading(false); return; }
+
+      // دریافت محتوای پرامپت‌ها
+      const { data: rows } = await supabase
+        .from('prompts')
+        .select('id,title,body,image_url')
         .eq('product_id', id)
         .order('id', { ascending: true });
 
-      if (error) {
-        // اگر RLS دسترسی ندهد، معمولاً status=401/403
-        if (status && status >= 400) setDenied(true);
-      } else if (data) {
-        setItems(data as PromptItem[]);
-      }
+      setPrompts(rows || []);
       setLoading(false);
     })();
   }, [id]);
 
-  if (loading) return <div className="p-6">درحال بررسی دسترسی…</div>;
-  if (denied) return <div className="p-6">این محتوا فقط برای خریداران در دسترس است.</div>;
-  if (!items.length) return <div className="p-6">محتوایی ثبت نشده.</div>;
-
-  const copy = async (t: string) => {
-    await navigator.clipboard.writeText(t);
-    alert('کپی شد ✅');
-  };
+  if (loading) return <div className="p-6">در حال بارگذاری…</div>;
+  if (denied) return (
+    <div className="p-6">
+      برای دیدن این محتوا باید ابتدا این محصول را بخرید.
+      <button onClick={() => router.replace(`/products/${id}`)} className="mt-3 px-3 py-1 border rounded">
+        بازگشت به صفحه محصول
+      </button>
+    </div>
+  );
 
   return (
-    <div className="max-w-3xl mx-auto p-4 grid gap-6">
-      <h1 className="text-xl font-bold">محتوای محصول</h1>
-      {items.map(it => (
-        <div key={it.id} className="border rounded-lg overflow-hidden">
-          {it.image_url ? <img src={it.image_url} alt={it.title ?? ''} className="w-full" /> : null}
-          <div className="p-4 space-y-3">
-            {it.title ? <h3 className="font-semibold">{it.title}</h3> : null}
-            <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-3 rounded">{it.text}</pre>
+    <main className="max-w-3xl mx-auto p-4">
+      <h1 className="text-xl font-bold mb-4">محتوای محصول</h1>
+      <div className="space-y-6">
+        {prompts.map(p => (
+          <div key={p.id} className="border rounded p-3">
+            <h3 className="font-semibold">{p.title}</h3>
+            {p.image_url && (/* @ts-expect-error */ <img src={p.image_url} alt="" className="w-full rounded mt-2" />)}
+            <pre className="bg-gray-50 p-2 rounded mt-2 text-sm whitespace-pre-wrap">{p.body}</pre>
             <button
-              onClick={() => copy(it.text)}
-              className="rounded border px-3 py-2 hover:bg-gray-50"
+              onClick={() => navigator.clipboard.writeText(p.body)}
+              className="mt-2 px-3 py-1 rounded bg-black text-white"
             >
               کپی کردن
             </button>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </main>
   );
 }
