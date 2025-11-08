@@ -1,138 +1,46 @@
 'use client';
-
 import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase-browser';
-import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [phase, setPhase] = useState<'ask'|'verify'>('ask');
   const [otp, setOtp] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [method, setMethod] = useState<'phone'|'email'>('phone');
-  const [message, setMessage] = useState<string | null>(null);
+  const [phase, setPhase] = useState<'phone'|'otp'>('phone');
+  const router = useRouter();
+  const sp = useSearchParams();
+  const next = sp.get('next') || '/';
 
-  async function sendCode(e: React.FormEvent) {
-    e.preventDefault();
-    setMessage(null);
-    setLoading(true);
-    try {
-      if (method === 'phone') {
-        // نکته: برای کارکرد واقعی، باید Phone Auth را در Supabase فعال و سرویس SMS تنظیم شود
-        const { error } = await supabase.auth.signInWithOtp({ phone });
-        if (error) throw error;
-        setPhase('verify');
-        setMessage('کد برای شما ارسال شد.');
-      } else {
-        const { error } = await supabase.auth.signInWithOtp({ email, options:{ emailRedirectTo: window.location.origin + '/login' }});
-        if (error) throw error;
-        setMessage('لینک/کد یک‌بارمصرف به ایمیل شما ارسال شد.');
-        setPhase('verify');
-      }
-    } catch (err: any) {
-      setMessage(err.message ?? 'خطا در ارسال کد');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const sendOtp = async () => {
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    if (!error) setPhase('otp');
+    else alert(error.message);
+  };
 
-  async function verifyCode(e: React.FormEvent) {
-    e.preventDefault();
-    setMessage(null);
-    setLoading(true);
-    try {
-      if (method === 'phone') {
-        const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: 'sms' });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
-        if (error) throw error;
-      }
-      setMessage('ورود موفق بود. در حال انتقال...');
-      router.push('/'); // پس از ورود به صفحه اصلی
-    } catch (err: any) {
-      setMessage(err.message ?? 'کد نامعتبر است');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const verifyOtp = async () => {
+    const { data, error } = await supabase.auth.verifyOtp({ phone, token: otp, type: 'sms' });
+    if (error) { alert(error.message); return; }
+    // ساخت/به‌روزرسانی پروفایل این‌جا دلخواه است
+    router.replace(next);
+  };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-10">
-      <h2 className="text-2xl font-bold mb-6">ورود / ثبت‌نام</h2>
+    <main className="max-w-sm mx-auto p-4">
+      <h1 className="text-lg font-bold mb-4">ورود / ثبت‌نام</h1>
 
-      <div className="mb-4 flex gap-2">
-        <button
-          onClick={() => setMethod('phone')}
-          className={`px-3 py-2 rounded border ${method==='phone'?'bg-black text-white':'bg-white'}`}
-        >
-          با موبایل
-        </button>
-        <button
-          onClick={() => setMethod('email')}
-          className={`px-3 py-2 rounded border ${method==='email'?'bg-black text-white':'bg-white'}`}
-        >
-          با ایمیل
-        </button>
-      </div>
-
-      {phase === 'ask' && (
-        <form onSubmit={sendCode} className="space-y-4">
-          {method === 'phone' ? (
-            <input
-              dir="ltr"
-              required
-              placeholder="مثلاً +98912xxxxxxx"
-              value={phone}
-              onChange={e => setPhone(e.target.value)}
-              className="w-full border rounded px-3 py-2"
-            />
-          ) : (
-            <input
-              type="email"
-              required
-              placeholder="ایمیل شما"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full border rounded px-3 py-2"
-            />
-          )}
-
-          <button
-            disabled={loading}
-            className="w-full rounded bg-black text-white py-2"
-          >
-            {loading ? 'در حال ارسال...' : 'ارسال کد'}
-          </button>
-        </form>
+      {phase === 'phone' && (
+        <>
+          <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="شماره موبایل با 98+" className="w-full border p-2 rounded"/>
+          <button onClick={sendOtp} className="mt-3 w-full py-2 rounded bg-black text-white">ارسال کد</button>
+        </>
       )}
 
-      {phase === 'verify' && (
-        <form onSubmit={verifyCode} className="space-y-4">
-          <input
-            required
-            placeholder="کد ۶ رقمی"
-            value={otp}
-            onChange={e => setOtp(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-          />
-          <button
-            disabled={loading}
-            className="w-full rounded bg-black text-white py-2"
-          >
-            {loading ? 'در حال بررسی...' : 'تأیید'}
-          </button>
-        </form>
+      {phase === 'otp' && (
+        <>
+          <input value={otp} onChange={e=>setOtp(e.target.value)} placeholder="کد ارسال‌شده" className="w-full border p-2 rounded"/>
+          <button onClick={verifyOtp} className="mt-3 w-full py-2 rounded bg-black text-white">تأیید</button>
+        </>
       )}
-
-      {message && <p className="mt-4 text-sm text-gray-700">{message}</p>}
-
-      <p className="mt-6 text-xs text-gray-500">
-        نکته: اگر پیامک فعال نباشد، روش ایمیل را استفاده کنید. بعداً که SMS Provider را در Supabase
-        تنظیم کردی، ورود با موبایل هم فعال می‌شود.
-      </p>
-    </div>
+    </main>
   );
 }
